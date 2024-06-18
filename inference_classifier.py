@@ -1,3 +1,4 @@
+import av
 import streamlit as st
 import cv2
 import numpy as np
@@ -26,7 +27,6 @@ with st.sidebar:
     # Adding subheader
     st.subheader("by Reihan Septyawan")
 
-
 # Load the trained model
 model_dict = pickle.load(open('model.p', 'rb'))
 model = model_dict['model']
@@ -50,7 +50,7 @@ class VideoTransformer(VideoTransformerBase):
         self.text = ""
         self.counter = 0
 
-    def transform(self, frame):
+    def recv(self, frame):
         image = frame.to_ndarray(format="bgr24")
 
         data_aux = []
@@ -114,7 +114,7 @@ class VideoTransformer(VideoTransformerBase):
                 self.prev_time = current_time
                 self.counter = 0
 
-        return image
+        return av.VideoFrame.from_ndarray(image, format="bgr24")
 
 # Add custom CSS for background color
 st.markdown(
@@ -145,7 +145,7 @@ if 'counter' not in st.session_state:
     st.session_state.counter = 0.0
 
 # Display the webcam feed
-webrtc_ctx = webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
+webrtc_ctx = webrtc_streamer(key="example", video_processor_factory=VideoTransformer, media_stream_constraints={"video": True, "audio": False})
 
 # Create placeholders for the predicted character and counter
 predicted_character_container = st.empty()
